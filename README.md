@@ -1,6 +1,6 @@
 # useImperativeHandle()
 
-When manipulating a child components `DOM element` with `Ref` and `forwardRefs`,
+When manipulating a child components `DOM element` with `Ref` and `forwardRefs`, you
 can limit what methods or functions of the child component to expose to the parent
 using `useImperativeHandle`
 
