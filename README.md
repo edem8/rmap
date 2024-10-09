@@ -1,96 +1,51 @@
-## Render props
+# useImperativeHandle()
 
-Think of a render prop as...wait no it is actually a prop component
-whose prop value is a function that returns some JSX. This way the component in itself
-becomes resuable in the sense that it all it renders is the prop passed.
-
-```javascript
-
-  interface CardTitleProp{
-    render: (title: string)=>React.ReactNode
-  }
-  const CardTitle: React.FC<CardTitleProp> = (props)=>props.render();
-
-  export default CardTitle
-```
-
-Using the CardTitle component
+When manipulating a child components `DOM element` with `Ref` and `forwardRefs`,
+can limit what methods or functions of the child component to expose to the parent
+using `useImperativeHandle`
 
 ```javascript
-<CardTitle render={() => <h1>This is a render prop</h1>} />
+useImperativeHandle(ref, () => ({
+  scrollIntoView() {
+    thisComponentRef.current.scrollIntoView();
+  },
+}));
 ```
 
 ## Project Example
 
-This project consists of three main components:
+This project contains a `CustomInput component`
 
-- `Input`: A component that handles user input for the temperature.
-- `Kelvin`: A component that displays the temperature in Kelvin.
-- `Fahrenheit`: A component that displays the temperature in Fahrenheit.
-
-### lifting state
-
-`kelvin` and `Fahrenheit` components need the input value from the `Input` component (parent compnent) to calculate their temperature values
+- `CustomInput`: An custom input component that allows its parent component to manuinplate`(focus it input element)` its `<input /> element`
+  by opting-in with `forwardRefs`
 
 ```javascript
-import React, { useState } from "react";
+interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement>{
+ children?: ReactNode
+}
 
-const Input: React.FC<{ render: (value: number) => React.ReactNode }> = (props) => {
-    const [value, setValue] = useState<number>(10);
+const CustomInput = forwardRef<{focus: ()=>void}, CustomInputProps> (({children, ...inputProps}, ref) => {
+ const childInputRef = useRef<HTMLInputElement>(null)
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValue(Number(event.target.value));
-    };
+ useImperativeHandle(ref,()=>({
+   focus(){
+     childInputRef.current?.focus()
+   }
+ }))
 
-    return (
-        <div>
-            <input
-                type="number"
-                value={value}
-                onChange={handleChange}
-                placeholder="Temp in degrees"
-            />
-            {props.render(value)} //passes value data to the children in the JSX prop
-        </div>
-    );
-};
+ return (
+   <>
+     <input
+       ref={childInputRef}
+       {...inputProps}
+     />
+     {children}
+ </>
+ );
+});
 
-export default Input;
+export default CustomInput;
 ```
 
-### Rendering the component
-
-```javascript
-<Input
-    render={(value: number) => (
-        <>
-            <Kelvin value={value} />
-            <Fahrenheit value={value} />
-        </>
-    )}
-/>
-
-```
-
-Input component rendered with children through a render prop
-
-## Why render props
-
-Checkout this example
-
-```javascript
-    const App: React.FC = ()=>{
-        const [value, setValue] = useState<number>(10)
-
-        return (
-            <div>
-            <Input setValue={setValue} /> // sets the value
-            <Kelvin  value={value} />    // uses the value to calc kelvin value
-            <Fahrenheit value={value}/> // uses the value to calc fahrenheit value
-
-            <AnotherComponent /> // unretaled component
-            </div>
-    )}
-```
-
-In the exmple above when the `App` re-renders based of vlaue changes `AnotherComponent` may re-render uneccessarily. Using render props helps manage this by allowing specific components to update without triggering re-renders of unrelated components.
+The `useImperativeHandler` in this component exposes only the `focus()` function of the component to its parent component,
+limiting which children functions of the `CustomInput` the parent can manipulate

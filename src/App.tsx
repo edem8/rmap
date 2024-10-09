@@ -1,19 +1,18 @@
+import { useRef } from "react";
 import "./App.css";
-import Fahrenheit from "./component/Fahrenheit";
-import Input from "./component/Input";
-import Kelvin from "./component/Kelvin";
+import CustomInput from "./component/CustomInput";
 
 function App() {
+  const inputRef = useRef<{ focus: () => void }>(null);
+
+  const handleFocusOnInput = (): void => {
+    inputRef.current?.focus();
+  };
+
   return (
     <div className="App">
-      <Input
-        render={(value: number) => (
-          <>
-            <Kelvin value={value} />
-            <Fahrenheit value={value} />
-          </>
-        )}
-      />
+      <CustomInput ref={inputRef} placeholder={"custom Input"} />
+      <button onClick={handleFocusOnInput}>focus on input</button>
     </div>
   );
 }
